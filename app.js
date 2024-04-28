@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid');
-const { registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent } = require('./db');
+const { registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails } = require('./db');
 const { JWT_TOKEN } = require('./constants');
 const { validateJwtSignature, validateJwtSignatureAdmin } = require('./middleware/validateJwtSignature');
 
@@ -76,8 +76,19 @@ app.post('/login', async (req, res) => {
 // Protecting the routes
 app.use(validateJwtSignature);
 
-app.get('/protected', (req, res) => {
-  res.json({ message: 'Protected route accessed successfully', user: req.user });
+// Route to handle fetching content details
+app.get('/user/learning-materials', async (req, res) => {
+  try {
+    const { page = 1, pageSize = 10, sortBy = 'created_at', sortOrder = 'DESC', difficultyLevel, languageId, creatorId } = req.query;
+
+    // Fetch content details
+    const contentDetails = await getContentDetails(page, pageSize, sortBy, sortOrder, difficultyLevel, languageId, creatorId);
+
+    res.status(200).json({ status: true, data: contentDetails });
+  } catch (error) {
+    console.error('Error fetching content details:', error);
+    res.status(500).json({ status: false, message: 'Internal server error' });
+  }
 });
 
 

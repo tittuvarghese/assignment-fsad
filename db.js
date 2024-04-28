@@ -76,4 +76,54 @@ const insertContent = async (content_id, language_id, contentType, item) => {
   }
 };
 
-module.exports = { registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent };
+// Function to fetch content details with pagination, sorting, and filtering
+const getContentDetails = async (page, pageSize, sortBy, sortOrder, difficultyLevel, languageId, creatorId) => {
+  try {
+    // Construct WHERE clause for filtering
+    let whereClause = 'WHERE 1=1';
+    const queryParams = [];
+
+    if (difficultyLevel) {
+      whereClause += ' AND difficulty_level = ?';
+      queryParams.push(difficultyLevel);
+    }
+
+    if (languageId) {
+      whereClause += ' AND language_id = ?';
+      queryParams.push(languageId);
+    }
+
+    if (creatorId) {
+      whereClause += ' AND creator_id = ?';
+      queryParams.push(creatorId);
+    }
+
+    // Construct ORDER BY clause for sorting
+    let orderByClause = '';
+    if (sortBy && sortOrder) {
+      orderByClause = `ORDER BY ${sortBy} ${sortOrder}`;
+    }
+
+    // Calculate pagination offset
+    const offset = (page - 1) * pageSize;
+
+    // Construct SQL query
+    const query = `
+      SELECT *
+      FROM learning_materials
+      ${whereClause}
+      ${orderByClause}
+      LIMIT ?, ?
+    `;
+
+    // Execute SQL query
+    const [rows] = await pool.execute(query, [...queryParams, offset, pageSize]);
+
+    return rows;
+  } catch (error) {
+    console.error('Error fetching content details:', error);
+    throw error;
+  }
+};
+
+module.exports = { registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails };
