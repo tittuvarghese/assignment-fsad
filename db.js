@@ -77,11 +77,16 @@ const insertContent = async (content_id, language_id, contentType, item) => {
 };
 
 // Function to fetch content details with pagination, sorting, and filtering
-const getContentDetails = async (page, pageSize, sortBy, sortOrder, difficultyLevel, languageId, creatorId) => {
+const getContentDetails = async (page, pageSize, sortBy, sortOrder, difficultyLevel, languageId, creatorId, contentType) => {
   try {
     // Construct WHERE clause for filtering
     let whereClause = 'WHERE 1=1';
     const queryParams = [];
+
+    if (contentType) {
+      whereClause += ' AND content_type = ?';
+      queryParams.push(contentType);
+    }
 
     if (difficultyLevel) {
       whereClause += ' AND difficulty_level = ?';

@@ -1,0 +1,241 @@
+{
+	"info": {
+		"_postman_id": "696afc25-ac52-448c-a586-d64209b4a9e0",
+		"name": "Learning-App-Assignment",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "739895"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{PROTOCOL_SCHEME}}://{{APP_URL}}:{{PORT}}/login",
+					"protocol": "{{PROTOCOL_SCHEME}}",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\",\n  \"firstName\": \"Tittu\",\n  \"lastName\": \"V\",\n  \"userType\": \"admin\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{PROTOCOL_SCHEME}}://{{APP_URL}}:{{PORT}}/register",
+					"protocol": "{{PROTOCOL_SCHEME}}",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin - Set Language",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{ADMIN_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"foreignLanguage\": \"Spanish\",\n  \"baseLanguage\": \"English\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{PROTOCOL_SCHEME}}://{{APP_URL}}:{{PORT}}/admin/languages",
+					"protocol": "{{PROTOCOL_SCHEME}}",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"admin",
+						"languages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin - Get Languages",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{ADMIN_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{PROTOCOL_SCHEME}}://{{APP_URL}}:{{PORT}}/admin/languages",
+					"protocol": "{{PROTOCOL_SCHEME}}",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"admin",
+						"languages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Learning Materials",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{ADMIN_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"language_id\": \"b493c87b-c592-4980-91dd-5e79306af0a3\",\n  \"content_type\": \"text\",\n  \"content\": [\n    {\"base_word\": \"hello\", \"foreign_word\": \"hola\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"beginner\"},\n    {\"base_word\": \"goodbye\", \"foreign_word\": \"adiós\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"beginner\"},\n    {\"base_word\": \"please\", \"foreign_word\": \"por favor\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"beginner\"},\n    {\"base_word\": \"thank you\", \"foreign_word\": \"gracias\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"intermediate\"},\n    {\"base_word\": \"yes\", \"foreign_word\": \"sí\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"intermediate\"},\n    {\"base_word\": \"no\", \"foreign_word\": \"no\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"intermediate\"},\n    {\"base_word\": \"sorry\", \"foreign_word\": \"lo siento\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"advanced\"},\n    {\"base_word\": \"excuse me\", \"foreign_word\": \"perdón\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"advanced\"},\n    {\"base_word\": \"I love you\", \"foreign_word\": \"te amo\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"advanced\"},\n    {\"base_word\": \"beautiful\", \"foreign_word\": \"hermoso/hermosa\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"advanced\"}\n  ]\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{PROTOCOL_SCHEME}}://{{APP_URL}}:{{PORT}}/admin/learning-materials",
+					"protocol": "{{PROTOCOL_SCHEME}}",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"admin",
+						"learning-materials"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET - Learning Materials",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{USER_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{PROTOCOL_SCHEME}}://{{APP_URL}}:{{PORT}}/user/learning-materials?contentType=text&page=1&pageSize=10&sortBy=created_at&sortOrder=ASC",
+					"protocol": "{{PROTOCOL_SCHEME}}",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"user",
+						"learning-materials"
+					],
+					"query": [
+						{
+							"key": "contentType",
+							"value": "text"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "10"
+						},
+						{
+							"key": "sortBy",
+							"value": "created_at"
+						},
+						{
+							"key": "sortOrder",
+							"value": "ASC"
+						},
+						{
+							"key": "difficultyLevel",
+							"value": "beginner",
+							"disabled": true
+						},
+						{
+							"key": "languageId",
+							"value": "b493c87b-c592-4980-91dd-5e79306af0a3",
+							"disabled": true
+						},
+						{
+							"key": "creatorId",
+							"value": "29ebc24c-6286-40ab-aec6-2107c6e445e2",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

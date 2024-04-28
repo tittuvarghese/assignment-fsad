@@ -79,12 +79,12 @@ app.use(validateJwtSignature);
 // Route to handle fetching content details
 app.get('/user/learning-materials', async (req, res) => {
   try {
-    const { page = 1, pageSize = 10, sortBy = 'created_at', sortOrder = 'DESC', difficultyLevel, languageId, creatorId } = req.query;
+    const { page = 1, pageSize = 10, sortBy = 'created_at', sortOrder = 'DESC', difficultyLevel, languageId, creatorId, contentType } = req.query;
 
     // Fetch content details
-    const contentDetails = await getContentDetails(page, pageSize, sortBy, sortOrder, difficultyLevel, languageId, creatorId);
+    const contentDetails = await getContentDetails(page, pageSize, sortBy, sortOrder, difficultyLevel, languageId, creatorId, contentType);
 
-    res.status(200).json({ status: true, data: contentDetails });
+    res.status(200).json({ status: true, message: "Successfully retrieved the learning materials", data: contentDetails });
   } catch (error) {
     console.error('Error fetching content details:', error);
     res.status(500).json({ status: false, message: 'Internal server error' });
