@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # backend:
+  #   image: node:18.19-alpine
+  #   volumes:
+  #     - ./:/app
+  #   ports:
+  #     - "3001:3000"
+  #   working_dir: /app
+  #   command: sh -c "npm install && npm start"
+  mariadb:
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: language-learning-db
+      MYSQL_USER: app-user
+      MYSQL_PASSWORD: app-user-password
+    volumes:
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+      #- mariadb_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+volumes:
+  mariadb_data:
+    driver: local
