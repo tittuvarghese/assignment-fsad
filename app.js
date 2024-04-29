@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid');
-const { registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails } = require('./db');
+const { pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert } = require('./db');
 const { JWT_TOKEN } = require('./constants');
 const { validateJwtSignature, validateJwtSignatureAdmin } = require('./middleware/validateJwtSignature');
 
@@ -91,6 +91,45 @@ app.get('/user/learning-materials', async (req, res) => {
   }
 });
 
+app.get('/user/assessment', async (req, res) => {
+  const userId = req.user.userId; // Assuming userId is provided in the query params
+  const languageId = req.query.languageId;
+  const count = req.query.count ? parseInt(req.query.count) : 5; // Default to 5 questions
+  const difficultyLevel = req.query.difficultyLevel || "beginner"; // Default duration 30 minutes
+  const durationAllowed = req.query.durationAllowed || 30; // Default duration 30 minutes
+
+  let connection;
+  try {
+    connection = await pool.getConnection();
+
+    await connection.beginTransaction();
+
+    // Retrieve random questions from learning_materials table
+    const questions = await questionsQuery(languageId, count, difficultyLevel, connection);
+
+    // Create assessment entry
+    const assessmentId = uuid.v4();
+    const startTime = new Date();
+    const endTime = new Date(startTime.getTime() + durationAllowed * 60000); // Convert duration to milliseconds
+    await assesmentInsertQuery(assessmentId, userId, startTime, endTime, durationAllowed, connection);
+    await assesmentQuestionsInsert(questions, assessmentId, connection);
+
+    await connection.commit();
+
+    res.json({ status: true, message: "Successfully created the assessment", assessmentId, questions });
+  } catch (error) {
+    console.error('Error occurred:', error);
+    if (connection) {
+      await connection.rollback();
+    }
+    res.status(500).json({ status: false, error: 'Internal Server Error', message: error.message });
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+});
+
 
 app.use(validateJwtSignatureAdmin);
 
@@ -138,8 +177,15 @@ app.post('/admin/learning-materials', async (req, res) => {
   // Iterate over each content item and insert into table
   // Iterate over each content item and insert into table
   for (const item of content) {
+    let weightage = 1;
     let contentId = uuid.v4();
-    insertPromises.push(insertContent(contentId, language_id, content_type, item));
+    if (content_type == "video") {
+      weightage = 3;
+    } else if (content_type == "image") {
+      weightage = 2;
+    }
+
+    insertPromises.push(insertContent(contentId, language_id, content_type, item, weightage));
   }
   try {
     // Await all insert operations

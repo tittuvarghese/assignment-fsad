@@ -54,17 +54,17 @@ async function fetchSupportedLanguages() {
 }
 
 // Function to insert a single content item
-const insertContent = async (content_id, language_id, contentType, item) => {
+const insertContent = async (content_id, language_id, contentType, item, weightage) => {
   const connection = await pool.getConnection();
   try {
     // Construct insert query
     const query = `
-      INSERT INTO learning_materials (content_id, language_id, content_type, foreign_word, base_word, creator_id, difficulty_level)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO learning_materials (content_id, language_id, content_type, foreign_word, base_word, creator_id, difficulty_level, weightage)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     // Execute insert query
-    await connection.execute(query, [content_id, language_id, contentType, item.foreign_word, item.base_word, item.creator_id, item.difficulty_level]);
+    await connection.execute(query, [content_id, language_id, contentType, item.foreign_word, item.base_word, item.creator_id, item.difficulty_level, weightage]);
     console.log('Content inserted successfully');
     return true; // Resolve promise indicating successful insertion
   } catch (error) {
@@ -131,4 +131,60 @@ const getContentDetails = async (page, pageSize, sortBy, sortOrder, difficultyLe
   }
 };
 
-module.exports = { registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails };
+const questionsQuery = async (languageId, count, difficultyLevel, connection) => {
+  let whereClause = 'WHERE 1=1';
+  const queryParams = [];
+
+  if (difficultyLevel) {
+    whereClause += ' AND difficulty_level = ?';
+    queryParams.push(difficultyLevel);
+  }
+
+  if (languageId) {
+    whereClause += ' AND language_id = ?';
+    queryParams.push(languageId);
+  }
+
+  // Construct SQL query
+  const query = `
+      SELECT *
+      FROM learning_materials
+      ${whereClause}
+      ORDER BY RAND()
+      LIMIT ?
+    `;
+  const [rows] = await connection.execute(query, [...queryParams, count]);
+  console.log(rows)
+  return rows;
+};
+
+const assesmentInsertQuery = async (assessmentId, userId, startTime, endTime, durationAllowed, connection) => {
+  // Construct insert query
+  const query = `
+    INSERT INTO assessment (assessment_id, user_id, start_time, end_time, duration_allowed)
+    VALUES (?, ?, ?, ?, ?);
+  `;
+  await connection.execute(query, [assessmentId, userId, startTime, endTime, durationAllowed]);
+};
+
+const assesmentQuestionsInsert = async (questions, assessmentId, connection) => {
+  if (questions.length === 0) {
+    throw new Error('No questions to insert');
+  }
+
+  // Generate placeholders for the values
+  const placeholders = questions.map(() => '(?, ?, ?)').join(', ');
+
+  // Extract values from questions
+  const values = questions.flatMap(question => [assessmentId, question.content_id, question.weightage]);
+
+  // Construct insert query
+  const query = `
+    INSERT INTO assessment_questions (assessment_id, question_id, weightage)
+    VALUES ${placeholders};
+  `;
+
+  await connection.execute(query, values);
+};
+
+module.exports = { pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert };

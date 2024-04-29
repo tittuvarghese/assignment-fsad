@@ -26,6 +26,25 @@ CREATE TABLE learning_materials (
     foreign_word VARCHAR(255),
     base_word VARCHAR(255),
     creator_id VARCHAR(100),
+    weightage INT,
     difficulty_level ENUM('beginner', 'intermediate', 'advanced'),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE assessment (
+    assessment_id VARCHAR(40) PRIMARY KEY,
+    user_id VARCHAR(100) NOT NULL,
+    start_time DATETIME NOT NULL,
+    end_time DATETIME,
+    duration_allowed INT DEFAULT 30, -- Duration allowed in minutes
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE assessment_questions (
+    assessment_id VARCHAR(40),
+    question_id VARCHAR(40),
+    weightage INT,
+    PRIMARY KEY (assessment_id, question_id),
+    FOREIGN KEY (assessment_id) REFERENCES assessment(assessment_id),
+    FOREIGN KEY (question_id) REFERENCES learning_materials(content_id)
 );
