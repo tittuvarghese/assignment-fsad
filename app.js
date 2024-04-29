@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid');
-const { pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert } = require('./db');
+const { pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert, getUserAssessments, validateUserAnswer, updateAssessmentProgress } = require('./db');
 const { JWT_TOKEN } = require('./constants');
 const { validateJwtSignature, validateJwtSignatureAdmin } = require('./middleware/validateJwtSignature');
 
@@ -91,7 +91,7 @@ app.get('/user/learning-materials', async (req, res) => {
   }
 });
 
-app.get('/user/assessment', async (req, res) => {
+app.get('/user/create-assessment', async (req, res) => {
   const userId = req.user.userId; // Assuming userId is provided in the query params
   const languageId = req.query.languageId;
   const count = req.query.count ? parseInt(req.query.count) : 5; // Default to 5 questions
@@ -111,7 +111,7 @@ app.get('/user/assessment', async (req, res) => {
     const assessmentId = uuid.v4();
     const startTime = new Date();
     const endTime = new Date(startTime.getTime() + durationAllowed * 60000); // Convert duration to milliseconds
-    await assesmentInsertQuery(assessmentId, userId, startTime, endTime, durationAllowed, connection);
+    await assesmentInsertQuery(languageId, assessmentId, userId, startTime, endTime, durationAllowed, difficultyLevel, connection);
     await assesmentQuestionsInsert(questions, assessmentId, connection);
 
     await connection.commit();
@@ -130,6 +130,55 @@ app.get('/user/assessment', async (req, res) => {
   }
 });
 
+app.get('/user/assessments', async (req, res) => {
+  const userId = req.user.userId;
+  console.log(req.user)
+  try {
+    const assesmentsByUser = await getUserAssessments(userId);
+    res.status(200).json({ status: true, message: 'Successfully retrieved the assesments', results: assesmentsByUser });
+  } catch (error) {
+    console.error('Error fetching the assesments:', error);
+    res.status(500).json({ status: false, message: error.message, error: 'Internal server error' });
+  }
+
+});
+
+// POST /user/assessment-progress/:assessmentId endpoint
+app.post('/user/assessment-progress/:assessmentId', async (req, res) => {
+  const userId = req.user.userId;
+  const assessmentId = req.params.assessmentId;
+  const { contentId, userAnswer } = req.body;
+
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    // Validate user answer
+    const isValid = await validateUserAnswer(assessmentId, contentId, userAnswer, connection);
+
+    if (!isValid) {
+      res.status(200).json({ status: false, message: 'Invalid user answer' });
+      return;
+    }
+
+    // Update assessment progress
+    await updateAssessmentProgress(assessmentId, connection);
+
+    await connection.commit();
+    res.status(200).json({ status: true, message: 'Assessment progress updated successfully' });
+  } catch (error) {
+    console.error('Error updating assessment progress:', error);
+    if (connection) {
+      await connection.rollback();
+    }
+    res.status(500).json({ status: false, message: error.message, error: 'Internal server error' });
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+});
 
 app.use(validateJwtSignatureAdmin);
 
@@ -155,7 +204,7 @@ app.post('/admin/languages', async (req, res) => {
 app.get('/admin/languages', async (req, res) => {
   try {
     const supportedLanguages = await fetchSupportedLanguages();
-    res.status(200).json({ status: true, message: 'Successfully retrieved the supported languages', supportedLanguages: supportedLanguages });
+    res.status(200).json({ status: true, message: 'Successfully retrieved the supported languages', results: supportedLanguages });
   } catch (error) {
     console.error('Error fetching supported languages:', error);
     res.status(500).json({ status: false, message: error.message, error: 'Internal server error' });

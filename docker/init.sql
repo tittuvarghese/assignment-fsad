@@ -33,17 +33,23 @@ CREATE TABLE learning_materials (
 
 CREATE TABLE assessment (
     assessment_id VARCHAR(40) PRIMARY KEY,
+    language_id VARCHAR(40),
     user_id VARCHAR(100) NOT NULL,
     start_time DATETIME NOT NULL,
     end_time DATETIME,
     duration_allowed INT DEFAULT 30, -- Duration allowed in minutes
+    difficulty_level ENUM('beginner', 'intermediate', 'advanced'),
+    progress INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE assessment_questions (
     assessment_id VARCHAR(40),
     question_id VARCHAR(40),
+    foreign_word VARCHAR(255),
+    base_word VARCHAR(255),
     weightage INT,
+    completed BOOLEAN DEFAULT false,
     PRIMARY KEY (assessment_id, question_id),
     FOREIGN KEY (assessment_id) REFERENCES assessment(assessment_id),
     FOREIGN KEY (question_id) REFERENCES learning_materials(content_id)

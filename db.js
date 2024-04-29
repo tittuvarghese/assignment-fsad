@@ -78,6 +78,7 @@ const insertContent = async (content_id, language_id, contentType, item, weighta
 
 // Function to fetch content details with pagination, sorting, and filtering
 const getContentDetails = async (page, pageSize, sortBy, sortOrder, difficultyLevel, languageId, creatorId, contentType) => {
+  const connection = await pool.getConnection();
   try {
     // Construct WHERE clause for filtering
     let whereClause = 'WHERE 1=1';
@@ -122,7 +123,7 @@ const getContentDetails = async (page, pageSize, sortBy, sortOrder, difficultyLe
     `;
 
     // Execute SQL query
-    const [rows] = await pool.execute(query, [...queryParams, offset, pageSize]);
+    const [rows] = await connection.execute(query, [...queryParams, offset, pageSize]);
 
     return rows;
   } catch (error) {
@@ -132,39 +133,44 @@ const getContentDetails = async (page, pageSize, sortBy, sortOrder, difficultyLe
 };
 
 const questionsQuery = async (languageId, count, difficultyLevel, connection) => {
-  let whereClause = 'WHERE 1=1';
-  const queryParams = [];
+  try {
 
-  if (difficultyLevel) {
-    whereClause += ' AND difficulty_level = ?';
-    queryParams.push(difficultyLevel);
-  }
+    let whereClause = 'WHERE 1=1';
+    const queryParams = [];
 
-  if (languageId) {
-    whereClause += ' AND language_id = ?';
-    queryParams.push(languageId);
-  }
+    if (difficultyLevel) {
+      whereClause += ' AND difficulty_level = ?';
+      queryParams.push(difficultyLevel);
+    }
 
-  // Construct SQL query
-  const query = `
+    if (languageId) {
+      whereClause += ' AND language_id = ?';
+      queryParams.push(languageId);
+    }
+
+    // Construct SQL query
+    const query = `
       SELECT *
       FROM learning_materials
       ${whereClause}
       ORDER BY RAND()
       LIMIT ?
     `;
-  const [rows] = await connection.execute(query, [...queryParams, count]);
-  console.log(rows)
-  return rows;
+    const [rows] = await connection.execute(query, [...queryParams, count]);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching content details:', error);
+    throw error;
+  }
 };
 
-const assesmentInsertQuery = async (assessmentId, userId, startTime, endTime, durationAllowed, connection) => {
+const assesmentInsertQuery = async (languageId, assessmentId, userId, startTime, endTime, durationAllowed, difficultyLevel, connection) => {
   // Construct insert query
   const query = `
-    INSERT INTO assessment (assessment_id, user_id, start_time, end_time, duration_allowed)
-    VALUES (?, ?, ?, ?, ?);
+    INSERT INTO assessment (language_id, assessment_id, user_id, start_time, end_time, duration_allowed,difficulty_level)
+    VALUES (?, ?, ?, ?, ?, ?, ?);
   `;
-  await connection.execute(query, [assessmentId, userId, startTime, endTime, durationAllowed]);
+  await connection.execute(query, [languageId, assessmentId, userId, startTime, endTime, durationAllowed, difficultyLevel]);
 };
 
 const assesmentQuestionsInsert = async (questions, assessmentId, connection) => {
@@ -173,18 +179,113 @@ const assesmentQuestionsInsert = async (questions, assessmentId, connection) => 
   }
 
   // Generate placeholders for the values
-  const placeholders = questions.map(() => '(?, ?, ?)').join(', ');
+  const placeholders = questions.map(() => '(?, ?, ?, ?, ?)').join(', ');
 
   // Extract values from questions
-  const values = questions.flatMap(question => [assessmentId, question.content_id, question.weightage]);
+  const values = questions.flatMap(question => [assessmentId, question.content_id, question.weightage, question.base_word, question.foreign_word]);
 
   // Construct insert query
   const query = `
-    INSERT INTO assessment_questions (assessment_id, question_id, weightage)
+    INSERT INTO assessment_questions (assessment_id, question_id, weightage, base_word, foreign_word)
     VALUES ${placeholders};
   `;
 
   await connection.execute(query, values);
 };
 
-module.exports = { pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert };
+const getUserAssessments = async (userId) => {
+  const connection = await pool.getConnection();
+  try {
+    // Query to retrieve user assessments with aggregated assessment questions
+    const query = `
+      SELECT a.assessment_id, a.start_time, a.end_time, a.duration_allowed,
+             a.difficulty_level, a.progress,
+             sl.foreign_language AS foreign_language,
+             sl.base_language AS base_language,
+             JSON_ARRAYAGG(JSON_OBJECT(
+               'question_id', aq.question_id,
+               'base_word', lm.base_word,
+               'content_type', lm.content_type,
+               'weightage', aq.weightage,
+               'completed', aq.completed
+             )) AS questions
+      FROM assessment AS a
+      INNER JOIN supported_languages AS sl ON a.language_id = sl.language_id
+      LEFT JOIN (
+        SELECT assessment_id, question_id, weightage, completed
+        FROM assessment_questions
+      ) AS aq ON a.assessment_id = aq.assessment_id
+      LEFT JOIN learning_materials AS lm ON aq.question_id = lm.content_id
+      WHERE a.user_id = ?
+      GROUP BY a.assessment_id
+    `;
+
+    const [rows] = await connection.execute(query, [userId]);
+
+    return rows.map(row => ({
+      ...row,
+      questions: row.questions ? JSON.parse(row.questions) : []
+    }));
+  } catch (error) {
+    console.error('Error fetching user assessments:', error);
+    throw error;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+};
+
+
+// Function to update assessment progress
+async function updateAssessmentProgress(assessmentId, connection) {
+  const updateQuery = `
+    UPDATE assessment
+    SET progress = progress + 1
+    WHERE assessment_id = ?;
+  `;
+  const params = [assessmentId];
+
+  try {
+    await connection.execute(updateQuery, params);
+    console.log("Assessment progress updated successfully");
+    return true;
+  } catch (error) {
+    console.error('Error updating assessment progress:', error);
+    throw error;
+  }
+}
+// Function to validate user answer using assessment_questions table
+async function validateUserAnswer(assessmentId, contentId, userAnswer, connection) {
+  const selectQuery = `
+    SELECT question_id
+    FROM assessment_questions
+    WHERE assessment_id = ? AND question_id = ? AND foreign_word = ? AND completed = false;
+  `;
+  const updateQuery = `
+    UPDATE assessment_questions
+    SET completed = true
+    WHERE assessment_id = ? AND question_id = ?;
+  `;
+
+  try {
+
+    // Execute select query
+    const [selectResults] = await connection.execute(selectQuery, [assessmentId, contentId, userAnswer]);
+    const isValid = selectResults.length > 0;
+
+    if (isValid) {
+      // Execute update query
+      await connection.execute(updateQuery, [assessmentId, contentId]);
+    } else {
+      return false;
+    }
+
+    return isValid;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+module.exports = { pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert, getUserAssessments, updateAssessmentProgress, validateUserAnswer };
