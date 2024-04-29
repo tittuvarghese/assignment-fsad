@@ -148,7 +148,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"language_id\": \"b493c87b-c592-4980-91dd-5e79306af0a3\",\n  \"content_type\": \"text\",\n  \"content\": [\n    {\"base_word\": \"hello\", \"foreign_word\": \"hola\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"beginner\"},\n    {\"base_word\": \"goodbye\", \"foreign_word\": \"adiós\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"beginner\"},\n    {\"base_word\": \"please\", \"foreign_word\": \"por favor\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"beginner\"},\n    {\"base_word\": \"thank you\", \"foreign_word\": \"gracias\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"intermediate\"},\n    {\"base_word\": \"yes\", \"foreign_word\": \"sí\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"intermediate\"},\n    {\"base_word\": \"no\", \"foreign_word\": \"no\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"intermediate\"},\n    {\"base_word\": \"sorry\", \"foreign_word\": \"lo siento\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"advanced\"},\n    {\"base_word\": \"excuse me\", \"foreign_word\": \"perdón\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"advanced\"},\n    {\"base_word\": \"I love you\", \"foreign_word\": \"te amo\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"advanced\"},\n    {\"base_word\": \"beautiful\", \"foreign_word\": \"hermoso/hermosa\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"advanced\"}\n  ]\n}\n",
+					"raw": "{\n  \"language_id\": \"b493c87b-c592-4980-91dd-5e79306af0a3\",\n  \"content_type\": \"text\",\n  \"content\": [\n    {\"base_word\": \"hello\", \"foreign_word\": \"hola\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"beginner\", \"weightage\": 1},\n    {\"base_word\": \"goodbye\", \"foreign_word\": \"adiós\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"beginner\", \"weightage\": 1},\n    {\"base_word\": \"please\", \"foreign_word\": \"por favor\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"beginner\", \"weightage\": 1},\n    {\"base_word\": \"thank you\", \"foreign_word\": \"gracias\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"intermediate\", \"weightage\": 1},\n    {\"base_word\": \"yes\", \"foreign_word\": \"sí\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"intermediate\", \"weightage\": 1},\n    {\"base_word\": \"no\", \"foreign_word\": \"no\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"intermediate\", \"weightage\": 1},\n    {\"base_word\": \"sorry\", \"foreign_word\": \"lo siento\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"advanced\", \"weightage\": 1},\n    {\"base_word\": \"excuse me\", \"foreign_word\": \"perdón\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"advanced\", \"weightage\": 1},\n    {\"base_word\": \"I love you\", \"foreign_word\": \"te amo\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"advanced\", \"weightage\": 1},\n    {\"base_word\": \"beautiful\", \"foreign_word\": \"hermoso/hermosa\", \"creator_id\": \"29ebc24c-6286-40ab-aec6-2107c6e445e2\", \"difficulty_level\": \"advanced\", \"weightage\": 1}\n  ]\n}\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -231,6 +231,130 @@
 							"key": "creatorId",
 							"value": "29ebc24c-6286-40ab-aec6-2107c6e445e2",
 							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Assessment",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{USER_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{PROTOCOL_SCHEME}}://{{APP_URL}}:{{PORT}}/user/create-assessment?languageId=b493c87b-c592-4980-91dd-5e79306af0a3&count=5&durationAllowed=30&difficultyLevel=beginner",
+					"protocol": "{{PROTOCOL_SCHEME}}",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"user",
+						"create-assessment"
+					],
+					"query": [
+						{
+							"key": "languageId",
+							"value": "b493c87b-c592-4980-91dd-5e79306af0a3"
+						},
+						{
+							"key": "count",
+							"value": "5"
+						},
+						{
+							"key": "durationAllowed",
+							"value": "30"
+						},
+						{
+							"key": "difficultyLevel",
+							"value": "beginner"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Assessments of a User",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{USER_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{PROTOCOL_SCHEME}}://{{APP_URL}}:{{PORT}}/user/assessments",
+					"protocol": "{{PROTOCOL_SCHEME}}",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"user",
+						"assessments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Progress",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{USER_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"contentId\" : \"3f1a48f4-78c5-4625-a856-5813f041caf3\",\n    \"userAnswer\" : \"por favor\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{PROTOCOL_SCHEME}}://{{APP_URL}}:{{PORT}}/user/assessment-progress/:assessmentId",
+					"protocol": "{{PROTOCOL_SCHEME}}",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"user",
+						"assessment-progress",
+						":assessmentId"
+					],
+					"variable": [
+						{
+							"key": "assessmentId",
+							"value": "c1cfb3e4-0b84-45ee-a78b-a2a67cdbf458"
 						}
 					]
 				}
