@@ -31,7 +31,7 @@ CREATE TABLE learning_materials (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE assessment (
+CREATE TABLE s (
     assessment_id VARCHAR(40) PRIMARY KEY,
     language_id VARCHAR(40),
     user_id VARCHAR(100) NOT NULL,
@@ -40,7 +40,10 @@ CREATE TABLE assessment (
     duration_allowed INT DEFAULT 30, -- Duration allowed in minutes
     difficulty_level ENUM('beginner', 'intermediate', 'advanced'),
     progress INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    total_questions INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    challenge_id VARCHAR(40),
+    FOREIGN KEY (challenge_id) REFERENCES challenges(challenge_id)
 );
 
 CREATE TABLE assessment_questions (
@@ -54,3 +57,17 @@ CREATE TABLE assessment_questions (
     FOREIGN KEY (assessment_id) REFERENCES assessment(assessment_id),
     FOREIGN KEY (question_id) REFERENCES learning_materials(content_id)
 );
+
+CREATE TABLE challenges (
+    challenge_id VARCHAR(40) PRIMARY KEY,
+    challenge_name VARCHAR(255) NOT NULL,
+    difficulty_level ENUM('beginner', 'intermediate', 'advanced'),
+    language_id VARCHAR(40),
+    start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    end_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100),
+    FOREIGN KEY (created_by) REFERENCES users(user_id)
+);
+
+INSERT into challenges (challenge_id, challenge_name, difficulty_level,created_by) VALUES ("0", "Default", "beginner", "c1cfb3e4-0b84-45ee-a78b-a2a67cdbf458")

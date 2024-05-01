@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid');
-const { pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert, getUserAssessments, validateUserAnswer, updateAssessmentProgress } = require('./db');
+const { pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert, getUserAssessments, validateUserAnswer, updateAssessmentProgress, createChallenge, challengeInsertQuery, getAllChallenges } = require('./db');
 const { JWT_TOKEN } = require('./constants');
 const { validateJwtSignature, validateJwtSignatureAdmin } = require('./middleware/validateJwtSignature');
 
@@ -97,7 +97,7 @@ app.get('/user/create-assessment', async (req, res) => {
   const count = req.query.count ? parseInt(req.query.count) : 5; // Default to 5 questions
   const difficultyLevel = req.query.difficultyLevel || "beginner"; // Default duration 30 minutes
   const durationAllowed = req.query.durationAllowed || 30; // Default duration 30 minutes
-
+  const challengeId = req.query.challengeId || 0;
   let connection;
   try {
     connection = await pool.getConnection();
@@ -111,12 +111,23 @@ app.get('/user/create-assessment', async (req, res) => {
     const assessmentId = uuid.v4();
     const startTime = new Date();
     const endTime = new Date(startTime.getTime() + durationAllowed * 60000); // Convert duration to milliseconds
-    await assesmentInsertQuery(languageId, assessmentId, userId, startTime, endTime, durationAllowed, difficultyLevel, connection);
+    await assesmentInsertQuery(languageId, assessmentId, userId, startTime, endTime, durationAllowed, difficultyLevel, challengeId, count, connection);
     await assesmentQuestionsInsert(questions, assessmentId, connection);
 
     await connection.commit();
+    const assesmentQuestions = questions.map(question => ({
+      content_id: question.content_id, // Assuming content_id is the ID of learning materials
+      language_id: question.language_id,
+      content_type: question.content_type,
+      base_word: question.base_word,
+      creator_id: question.creator_id,
+      weightage: question.weightage,
+      difficulty_level: question.difficulty_level,
+      created_at: question.created_at,
+      completed: false
+    }));
 
-    res.json({ status: true, message: "Successfully created the assessment", assessmentId, questions });
+    res.json({ status: true, message: "Successfully created the assessment", assessmentId, assesmentQuestions });
   } catch (error) {
     console.error('Error occurred:', error);
     if (connection) {
@@ -177,6 +188,16 @@ app.post('/user/assessment-progress/:assessmentId', async (req, res) => {
     if (connection) {
       connection.release();
     }
+  }
+});
+
+app.get('/user/challenges', async (req, res) => {
+  try {
+    // Call getAllChallenges function to fetch all challenges with status
+    const challenges = await getAllChallenges();
+    res.status(200).json({ status: true, message: "Successfully retrieved all the challenges", challenges });
+  } catch (error) {
+    res.status(500).json({ status: false, message: error.message, error: 'Internal server error' });
   }
 });
 
@@ -246,6 +267,44 @@ app.post('/admin/learning-materials', async (req, res) => {
     res.status(500).json({ status: false, error: 'Internal server error', message: error.message });
   }
 
+});
+
+
+app.get('/admin/create-challenge', async (req, res) => {
+  const userId = req.user.userId; // Assuming userId is provided in the query params
+  const languageId = req.query.languageId;
+  const challengeName = req.query.challengeName;
+  const difficultyLevel = req.query.difficultyLevel || "beginner"; // Default duration 30 minutes
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
+
+  let connection;
+  try {
+    connection = await pool.getConnection();
+
+    await connection.beginTransaction();
+
+    // Create assessment entry
+    const challengeId = uuid.v4();
+    const startTime = new Date(startDate);
+    const endTime = new Date(endDate);
+
+    await challengeInsertQuery(challengeName, challengeId, languageId, userId, startTime, endTime, difficultyLevel, connection);
+
+    await connection.commit();
+
+    res.json({ status: true, message: "Successfully created the challenge", challengeId });
+  } catch (error) {
+    console.error('Error occurred:', error);
+    if (connection) {
+      await connection.rollback();
+    }
+    res.status(500).json({ status: false, error: 'Internal Server Error', message: error.message });
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
 });
 
 

@@ -164,13 +164,13 @@ const questionsQuery = async (languageId, count, difficultyLevel, connection) =>
   }
 };
 
-const assesmentInsertQuery = async (languageId, assessmentId, userId, startTime, endTime, durationAllowed, difficultyLevel, connection) => {
+const assesmentInsertQuery = async (languageId, assessmentId, userId, startTime, endTime, durationAllowed, difficultyLevel, challengeId, questonsCount, connection) => {
   // Construct insert query
   const query = `
-    INSERT INTO assessment (language_id, assessment_id, user_id, start_time, end_time, duration_allowed,difficulty_level)
-    VALUES (?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO assessment (language_id, assessment_id, user_id, start_time, end_time, duration_allowed,difficulty_level, challenge_id, total_questions)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
-  await connection.execute(query, [languageId, assessmentId, userId, startTime, endTime, durationAllowed, difficultyLevel]);
+  await connection.execute(query, [languageId, assessmentId, userId, startTime, endTime, durationAllowed, difficultyLevel, challengeId, questonsCount]);
 };
 
 const assesmentQuestionsInsert = async (questions, assessmentId, connection) => {
@@ -287,5 +287,41 @@ async function validateUserAnswer(assessmentId, contentId, userAnswer, connectio
   }
 }
 
+const challengeInsertQuery = async (challengeName, challengeId, languageId, created_by, startTime, endTime, difficultyLevel, connection) => {
+  // Construct insert query
+  const query = `
+    INSERT INTO challenges (challenge_name,challenge_id,language_id, created_by, start_time, end_time,difficulty_level)
+    VALUES (?, ?, ?, ?, ?, ?, ?);
+  `;
+  await connection.execute(query, [challengeName, challengeId, languageId, created_by, startTime, endTime, difficultyLevel]);
+};
 
-module.exports = { pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert, getUserAssessments, updateAssessmentProgress, validateUserAnswer };
+
+const getAllChallenges = async () => {
+  const connection = await pool.getConnection();
+  try {
+
+    try {
+      const [challenges] = await connection.execute('SELECT * FROM challenges WHERE challenge_id != "0" ORDER BY end_time DESC');
+
+      const currentDate = new Date();
+      const challengesWithStatus = challenges.map(challenge => {
+        const endDate = new Date(challenge.end_time);
+        const status = endDate < currentDate ? 'Completed' : 'Ongoing';
+        return { ...challenge, status };
+      });
+
+      return challengesWithStatus;
+
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+module.exports = {
+  pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert, getUserAssessments, updateAssessmentProgress, validateUserAnswer, challengeInsertQuery, getAllChallenges
+};
