@@ -165,6 +165,24 @@ const questionsQuery = async (languageId, count, difficultyLevel, connection) =>
 };
 
 const assesmentInsertQuery = async (languageId, assessmentId, userId, startTime, endTime, durationAllowed, difficultyLevel, challengeId, questonsCount, connection) => {
+
+  if (challengeId != 0) {
+
+    const countQuery = `
+      SELECT count(assessment_id) AS count
+      FROM assessment WHERE user_id = ? AND challenge_id = ?
+    `;
+    // Execute SQL query
+    const [rows] = await connection.execute(countQuery, [userId, challengeId]);
+
+    // Extract count from the result
+    const count = rows[0].count;
+    if (count > 0) {
+      throw new Error('User cannot register same challenge again');
+    }
+
+  }
+
   // Construct insert query
   const query = `
     INSERT INTO assessment (language_id, assessment_id, user_id, start_time, end_time, duration_allowed,difficulty_level, challenge_id, total_questions)

@@ -31,7 +31,7 @@ CREATE TABLE learning_materials (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE s (
+CREATE TABLE assessment (
     assessment_id VARCHAR(40) PRIMARY KEY,
     language_id VARCHAR(40),
     user_id VARCHAR(100) NOT NULL,
