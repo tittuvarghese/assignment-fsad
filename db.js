@@ -318,22 +318,41 @@ const challengeInsertQuery = async (challengeName, challengeId, languageId, crea
 const getAllChallenges = async () => {
   const connection = await pool.getConnection();
   try {
+    const [challenges] = await connection.execute('SELECT * FROM challenges WHERE challenge_id != "0" ORDER BY end_time DESC');
 
-    try {
-      const [challenges] = await connection.execute('SELECT * FROM challenges WHERE challenge_id != "0" ORDER BY end_time DESC');
+    const currentDate = new Date();
+    const challengesWithStatus = challenges.map(challenge => {
+      const endDate = new Date(challenge.end_time);
+      const status = endDate < currentDate ? 'Completed' : 'Ongoing';
+      return { ...challenge, status };
+    });
 
-      const currentDate = new Date();
-      const challengesWithStatus = challenges.map(challenge => {
-        const endDate = new Date(challenge.end_time);
-        const status = endDate < currentDate ? 'Completed' : 'Ongoing';
-        return { ...challenge, status };
-      });
+    return challengesWithStatus;
 
-      return challengesWithStatus;
+  } catch (error) {
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
 
-    } finally {
-      connection.release();
-    }
+const getLeaderBoard = async () => {
+  const connection = await pool.getConnection();
+  try {
+    const query = `
+            SELECT a.*, c.*, sl.*
+            FROM (
+                SELECT *, ROW_NUMBER() OVER (PARTITION BY challenge_id ORDER BY progress DESC, updated_at ASC) AS rank
+                FROM assessment WHERE challenge_id != "0"
+            ) AS a
+            JOIN challenges AS c ON a.challenge_id = c.challenge_id
+            JOIN supported_languages AS sl ON c.language_id = sl.language_id
+            WHERE a.rank = 1;
+        `;
+
+    const [rows] = await connection.execute(query);
+
+    return rows;
   } catch (error) {
     throw error;
   }
@@ -341,5 +360,5 @@ const getAllChallenges = async () => {
 
 
 module.exports = {
-  pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert, getUserAssessments, updateAssessmentProgress, validateUserAnswer, challengeInsertQuery, getAllChallenges
+  pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert, getUserAssessments, updateAssessmentProgress, validateUserAnswer, challengeInsertQuery, getAllChallenges, getLeaderBoard
 };

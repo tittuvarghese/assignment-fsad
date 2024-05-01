@@ -3,12 +3,12 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid');
-const { pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert, getUserAssessments, validateUserAnswer, updateAssessmentProgress, createChallenge, challengeInsertQuery, getAllChallenges } = require('./db');
+const { pool, registerUser, findUserByEmail, insertLanguageDetails, fetchSupportedLanguages, insertContent, getContentDetails, questionsQuery, assesmentInsertQuery, assesmentQuestionsInsert, getUserAssessments, validateUserAnswer, updateAssessmentProgress, createChallenge, challengeInsertQuery, getAllChallenges, getLeaderBoard } = require('./db');
 const { JWT_TOKEN } = require('./constants');
 const { validateJwtSignature, validateJwtSignatureAdmin } = require('./middleware/validateJwtSignature');
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(bodyParser.json());
@@ -200,6 +200,18 @@ app.get('/user/challenges', async (req, res) => {
     res.status(500).json({ status: false, message: error.message, error: 'Internal server error' });
   }
 });
+
+app.get('/user/leaderboard/:challengeId', async (req, res) => {
+  const assessmentId = req.params.assessmentId;
+  try {
+    // Call getAllChallenges function to fetch all challenges with status
+    const leaderboard = await getLeaderBoard(assessmentId);
+    res.status(200).json({ status: true, message: "Successfully retrieved leaderboard for all the challenges", leaderboard });
+  } catch (error) {
+    res.status(500).json({ status: false, message: error.message, error: 'Internal server error' });
+  }
+});
+
 
 app.use(validateJwtSignatureAdmin);
 

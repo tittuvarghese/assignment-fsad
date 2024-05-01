@@ -42,6 +42,7 @@ CREATE TABLE assessment (
     progress INT DEFAULT 0,
     total_questions INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     challenge_id VARCHAR(40),
     FOREIGN KEY (challenge_id) REFERENCES challenges(challenge_id)
 );
@@ -70,4 +71,5 @@ CREATE TABLE challenges (
     FOREIGN KEY (created_by) REFERENCES users(user_id)
 );
 
-INSERT into challenges (challenge_id, challenge_name, difficulty_level,created_by) VALUES ("0", "Default", "beginner", "c1cfb3e4-0b84-45ee-a78b-a2a67cdbf458")
+INSERT into challenges (challenge_id, challenge_name, difficulty_level,created_by) VALUES ("0", "Default", "beginner", "c1cfb3e4-0b84-45ee-a78b-a2a67cdbf458");
+-- ALTER TABLE assessment ADD updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;

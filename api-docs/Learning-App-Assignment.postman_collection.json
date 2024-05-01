@@ -332,7 +332,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"contentId\" : \"3f1a48f4-78c5-4625-a856-5813f041caf3\",\n    \"userAnswer\" : \"por favor\"\n}",
+					"raw": "{\n    \"contentId\" : \"893d2feb-42f2-4c21-bf32-0afea2000809\",\n    \"userAnswer\" : \"hola\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -354,7 +354,178 @@
 					"variable": [
 						{
 							"key": "assessmentId",
-							"value": "c1cfb3e4-0b84-45ee-a78b-a2a67cdbf458"
+							"value": "454af467-de61-441c-81bf-ed227f0f5379"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Challenge",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{ADMIN_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{PROTOCOL_SCHEME}}://{{APP_URL}}:{{PORT}}/admin/create-challenge?languageId=b493c87b-c592-4980-91dd-5e79306af0a3&challengeName=Beginner Test&difficultyLevel=beginner&startDate=01-May-2024&endDate=30-May-2024",
+					"protocol": "{{PROTOCOL_SCHEME}}",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"admin",
+						"create-challenge"
+					],
+					"query": [
+						{
+							"key": "languageId",
+							"value": "b493c87b-c592-4980-91dd-5e79306af0a3"
+						},
+						{
+							"key": "challengeName",
+							"value": "Beginner Test"
+						},
+						{
+							"key": "difficultyLevel",
+							"value": "beginner"
+						},
+						{
+							"key": "startDate",
+							"value": "01-May-2024"
+						},
+						{
+							"key": "endDate",
+							"value": "30-May-2024"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Challenges",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{USER_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{PROTOCOL_SCHEME}}://{{APP_URL}}:{{PORT}}/user/challenges",
+					"protocol": "{{PROTOCOL_SCHEME}}",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"user",
+						"challenges"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SignUp for Challenge",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{USER_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{PROTOCOL_SCHEME}}://{{APP_URL}}:{{PORT}}/user/create-assessment?languageId=b493c87b-c592-4980-91dd-5e79306af0a3&count=5&durationAllowed=30&difficultyLevel=beginner&challengeId=1deca715-6909-4983-a58b-fa1930a254f5",
+					"protocol": "{{PROTOCOL_SCHEME}}",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"user",
+						"create-assessment"
+					],
+					"query": [
+						{
+							"key": "languageId",
+							"value": "b493c87b-c592-4980-91dd-5e79306af0a3"
+						},
+						{
+							"key": "count",
+							"value": "5"
+						},
+						{
+							"key": "durationAllowed",
+							"value": "30"
+						},
+						{
+							"key": "difficultyLevel",
+							"value": "beginner"
+						},
+						{
+							"key": "challengeId",
+							"value": "1deca715-6909-4983-a58b-fa1930a254f5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Leaderboard",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{USER_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{PROTOCOL_SCHEME}}://{{APP_URL}}:{{PORT}}/user/leaderboard/:challengeId",
+					"protocol": "{{PROTOCOL_SCHEME}}",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"user",
+						"leaderboard",
+						":challengeId"
+					],
+					"variable": [
+						{
+							"key": "challengeId",
+							"value": "1deca715-6909-4983-a58b-fa1930a254f5"
 						}
 					]
 				}
