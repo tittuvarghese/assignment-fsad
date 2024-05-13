@@ -340,14 +340,17 @@ const getLeaderBoard = async () => {
   const connection = await pool.getConnection();
   try {
     const query = `
-            SELECT a.*, c.*, sl.*
-            FROM (
-                SELECT *, ROW_NUMBER() OVER (PARTITION BY challenge_id ORDER BY progress DESC, updated_at ASC) AS rank
-                FROM assessment WHERE challenge_id != "0"
-            ) AS a
-            JOIN challenges AS c ON a.challenge_id = c.challenge_id
-            JOIN supported_languages AS sl ON c.language_id = sl.language_id
-            WHERE a.rank = 1;
+            SELECT a.*, c.*, sl.*, u.first_name, u.last_name
+FROM (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY a.challenge_id ORDER BY a.progress DESC, a.updated_at ASC) AS rank
+    FROM assessment AS a
+    WHERE a.challenge_id != "0"
+) AS a
+JOIN challenges AS c ON a.challenge_id = c.challenge_id
+JOIN supported_languages AS sl ON c.language_id = sl.language_id
+JOIN users AS u ON a.user_id = u.user_id
+WHERE a.rank = 1;
+
         `;
 
     const [rows] = await connection.execute(query);
